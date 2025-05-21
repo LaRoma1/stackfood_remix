@@ -1,55 +1,51 @@
-import type { Password, User } from "@prisma/client";
+import type { User } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-import { prisma } from "~/db.server";
+import { db } from "~/db.server";
 
 export type { User } from "@prisma/client";
 
 export async function getUserById(id: User["id"]) {
-  return prisma.user.findUnique({ where: { id } });
+  return db.user.findUnique({ where: { id } });
 }
 
 export async function getUserByEmail(email: User["email"]) {
-  return prisma.user.findUnique({ where: { email } });
+  return db.user.findUnique({ where: { email } });
 }
 
-export async function createUser(email: User["email"], password: string) {
+export async function createUser(email: User["email"],phone: string, password: string, firstName: string, lastName: string) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  return prisma.user.create({
+  return db.user.create({
     data: {
       email,
-      password: {
-        create: {
-          hash: hashedPassword,
-        },
-      },
+      phone,
+      firstName,
+      lastName,
+      password: hashedPassword,
     },
   });
 }
 
 export async function deleteUserByEmail(email: User["email"]) {
-  return prisma.user.delete({ where: { email } });
+  return db.user.delete({ where: { email } });
 }
 
 export async function verifyLogin(
   email: User["email"],
-  password: Password["hash"],
+  password: string,
 ) {
-  const userWithPassword = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: { email },
-    include: {
-      password: true,
-    },
   });
 
-  if (!userWithPassword || !userWithPassword.password) {
+  if (!user || !user.password) {
     return null;
   }
 
   const isValid = await bcrypt.compare(
     password,
-    userWithPassword.password.hash,
+    user.password,
   );
 
   if (!isValid) {
@@ -57,7 +53,8 @@ export async function verifyLogin(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password: _password, ...userWithoutPassword } = userWithPassword;
+  const { password: _password, ...userWithoutPassword } = user;
 
   return userWithoutPassword;
 }
+
