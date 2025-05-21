@@ -17,6 +17,7 @@ model User {
   lastName String
   firstName String
   password String
+  phone String
   role Role @default(USER)
 
   createdAt DateTime @default(now())
