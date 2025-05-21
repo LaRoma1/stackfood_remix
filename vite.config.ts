@@ -22,6 +22,8 @@ export default defineConfig({
         return defineRoutes((route) => {
           route("/", "routes/_index/route.tsx");
           route("about", "routes/about/route.tsx");
+          route("auth/login", "routes/auth/login.tsx");
+          route("auth/register", "routes/auth/register.tsx");
         });
       },
     }),
